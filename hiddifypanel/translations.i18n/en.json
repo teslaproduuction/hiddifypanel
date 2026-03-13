@@ -1159,6 +1159,24 @@
       "description": "Add additional sites to pass through WARP (only when warp mode is not None)",
       "label": "🆚 Additional WARP Sites"
     },
+    "tunnel": {
+      "label": "🔀 Proxy Tunnel",
+      "description": "Route outbound traffic through a custom proxy server. Works identically to WARP but lets you use any proxy share link instead of Cloudflare WARP."
+    },
+    "tunnel_mode": {
+      "label": "✴️ Tunnel Mode",
+      "description": "✴️ All: all outbound traffic goes through the proxy tunnel<br>☑️ Only Domestic and Blocked Sites: same as WARP custom mode but via your proxy"
+    },
+    "tunnel_link": {
+      "label": "🔗 Proxy Share Link",
+      "description": "Paste a proxy share link. Supported: <code>vless://</code>, <code>vmess://</code>, <code>ss://</code>, <code>trojan://</code>, <code>hysteria2://</code>",
+      "invalid": "⚠️ Invalid share link — must start with vless:// vmess:// ss:// trojan:// or hysteria2://",
+      "unreachable": "⚠️ Warning: could not connect to tunnel server"
+    },
+    "tunnel_sites": {
+      "label": "🆚 Additional Tunnel Sites",
+      "description": "Extra domains routed through the tunnel proxy (same format as Additional WARP Sites, only used when tunnel mode ≠ Disabled)"
+    },
     "wireguard": {
       "description": "WireGuard is a lightweight, UDP  based protocol known for its simplicity, efficiency, and strong security. It offers quick setup, transparent code, and has gained popularity for its ease of use across various operating systems",
       "label": "WireGuard"

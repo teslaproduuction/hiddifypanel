@@ -16,6 +16,12 @@ from hiddifypanel.database import db, db_execute
 from loguru import logger
 MAX_DB_VERSION = 130
 
+def _v117(child_id):
+    add_config_if_not_exist(ConfigEnum.tunnel_mode, "disable", child_id=child_id)
+    add_config_if_not_exist(ConfigEnum.tunnel_link, "", child_id=child_id)
+    add_config_if_not_exist(ConfigEnum.tunnel_sites, "", child_id=child_id)
+
+
 def _v116(child_id):
     set_hconfig(ConfigEnum.dnstt_enable, True)
     set_hconfig(ConfigEnum.dnstt_resolvers,"8.8.8.8:53,8.8.4.4:53")

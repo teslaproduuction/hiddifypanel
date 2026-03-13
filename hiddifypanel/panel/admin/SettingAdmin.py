@@ -59,6 +59,9 @@ class SettingAdmin(FlaskView):
                             if k == ConfigEnum.warp_sites and 'https://' in v:
                                 hutils.flask.flash(_("config.warp-https-domain-for-warp-site"), 'error')
                                 return render_template('config.html', form=form)
+                            if k == ConfigEnum.tunnel_link and v and not re.match(r'^(vless|vmess|ss|trojan|hysteria2|hy2)://', v, re.IGNORECASE):
+                                hutils.flask.flash(_("config.tunnel_link.invalid"), 'error')
+                                return render_template('config.html', form=form)
                             if "port" in k:
                                 for p in v.split(","):
                                     if (k != ConfigEnum.tls_ports and p == "443") or (k != ConfigEnum.http_ports and p == "80"):
@@ -103,6 +106,25 @@ class SettingAdmin(FlaskView):
                 set_hconfig(k, v, commit=False)
 
             db.session.commit()
+
+            # Connectivity check for tunnel_link
+            _tunnel_link_val = merged_configs.get(ConfigEnum.tunnel_link, '')
+            if _tunnel_link_val and merged_configs.get(ConfigEnum.tunnel_mode, 'disable') != 'disable':
+                try:
+                    import sys as _sys, socket as _socket
+                    _sys.path.insert(0, '/opt/hiddify-manager/common')
+                    from parse_proxy_link import parse_proxy_link as _parse_proxy_link
+                    _parsed = _parse_proxy_link(_tunnel_link_val)
+                    if _parsed and _parsed.get('server') and _parsed.get('port'):
+                        _sock = _socket.socket()
+                        _sock.settimeout(5)
+                        _result = _sock.connect_ex((_parsed['server'], int(_parsed['port'])))
+                        _sock.close()
+                        if _result != 0:
+                            hutils.flask.flash(_("config.tunnel_link.unreachable") + f" ({_parsed['server']}:{_parsed['port']})", 'warning')
+                except Exception:
+                    pass
+
             flask_babel.refresh()
 
             # set panel mode
@@ -267,6 +289,23 @@ def get_config_form():
                 field = wtf.SelectField(_(f"config.{c.key}.label"), choices=choices, description=_(f"config.{c.key}.description"), default=hconfig(c.key))
 
             elif c.key == ConfigEnum.warp_sites:
+                validators = [wtf.validators.Length(max=2048),
+                              wtf.validators.Regexp(r'^(?:[\w.-]+\.\w+(?:\.\w+)?(?:\r?\n|$)|^$)', 0, _("config.invalid-pattern-for-warp-sites") + f' {c.key}')
+                              ]
+                render_kw = {'class': "ltr", 'maxlength': 2048}
+                field = wtf.TextAreaField(_(f'config.{c.key}.label'), validators, default=c.value,
+                                          description=_(f'config.{c.key}.description'), render_kw=render_kw)
+            elif c.key == ConfigEnum.tunnel_mode:
+                field = wtf.SelectField(_(f"config.{c.key}.label"),
+                                        choices=[("disable", _("Disable")), ("all", _("All")), ("custom", _("Only Blocked and Local websites"))],
+                                        description=_(f"config.{c.key}.description"),
+                                        default=hconfig(c.key))
+            elif c.key == ConfigEnum.tunnel_link:
+                render_kw = {'class': "ltr", 'maxlength': 2048, 'placeholder': 'vless://... | vmess://... | ss://... | trojan://... | hysteria2://...'}
+                validators = [wtf.validators.Optional(), wtf.validators.Length(max=2048)]
+                field = wtf.StringField(_(f'config.{c.key}.label'), validators, default=hconfig(c.key),
+                                        description=_(f'config.{c.key}.description'), render_kw=render_kw)
+            elif c.key == ConfigEnum.tunnel_sites:
                 validators = [wtf.validators.Length(max=2048),
                               wtf.validators.Regexp(r'^(?:[\w.-]+\.\w+(?:\.\w+)?(?:\r?\n|$)|^$)', 0, _("config.invalid-pattern-for-warp-sites") + f' {c.key}')
                               ]
