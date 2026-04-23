@@ -72,7 +72,7 @@ def to_clash(proxy, meta_or_normal):
         # base['congestion_control'] = "cubic"
         base['udp-relay-mode'] = 'native'
         base['reduce-rtt'] = True
-        base["skip-cert-verify"] = proxy['allow_insecure']
+        base["skip-cert-verify"] = proxy['allow_insecure'] or proxy['mode'] == 'Fake'
         base['sni'] = proxy['sni']
         # base['heartbeat'] = "10s"
         base['password'] = proxy['uuid']
@@ -129,6 +129,7 @@ def to_clash(proxy, meta_or_normal):
         base["password"] = proxy["uuid"]
         base["obfs"] = "salamander"
         base["obfs-password"] = proxy.get('hysteria_obfs_password')
+        base["skip-cert-verify"] = proxy['allow_insecure'] or proxy['mode'] == 'Fake'
         return base
     else:
         base["uuid"] = proxy["uuid"]
